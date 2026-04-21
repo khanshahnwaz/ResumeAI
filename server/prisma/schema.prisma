@@ -1,0 +1,149 @@
+// ============================================================
+// Prisma Schema — Resume Generator App
+// Database: PostgreSQL
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  
+}
+
+// ─── User ───────────────────────────────────────────────────
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profile          Profile?
+  experiences      Experience[]
+  educations       Education[]
+  skills           UserSkill[]
+  projects         Project[]
+  resumes          Resume[]
+  jobDescriptions  JobDescription[]
+
+  @@map("users")
+}
+
+// ─── Profile ────────────────────────────────────────────────
+model Profile {
+  id           String  @id @default(uuid())
+  userId       String  @unique @map("user_id")
+  fullName     String? @map("full_name")
+  phone        String?
+  location     String?
+  linkedinUrl  String? @map("linkedin_url")
+  githubUrl    String? @map("github_url")
+  portfolioUrl String? @map("portfolio_url")
+  bio          String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// ─── Experience ─────────────────────────────────────────────
+model Experience {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  company      String
+  role         String
+  startDate    DateTime @map("start_date")
+  endDate      DateTime? @map("end_date")
+  isCurrent    Boolean  @default(false) @map("is_current")
+  bulletPoints String[] @map("bullet_points") // Array of achievement bullets
+  techTags     String[] @map("tech_tags")      // Technologies used
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("experiences")
+}
+
+// ─── Education ──────────────────────────────────────────────
+model Education {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  institution String
+  degree      String
+  field       String
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime? @map("end_date")
+  gpa         Float?
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("educations")
+}
+
+// ─── Skills ─────────────────────────────────────────────────
+model UserSkill {
+  id          String @id @default(uuid())
+  userId      String @map("user_id")
+  name        String
+  category    String // e.g. "language", "framework", "tool", "soft"
+  proficiency Int    @default(3) // 1–5 scale
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@map("user_skills")
+}
+
+// ─── Projects ───────────────────────────────────────────────
+model Project {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  title       String
+  description String
+  techTags    String[] @map("tech_tags")
+  url         String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("projects")
+}
+
+// ─── Job Descriptions ───────────────────────────────────────
+model JobDescription {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  title             String
+  company           String?
+  rawText           String   @map("raw_text")
+  extractedKeywords String[] @map("extracted_keywords")
+  requiredSkills    String[] @map("required_skills")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumes Resume[]
+
+  @@map("job_descriptions")
+}
+
+// ─── Resumes ────────────────────────────────────────────────
+model Resume {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  jobId      String   @map("job_id")
+  title      String
+  content    Json     // Structured JSON: { summary, skills, experience, projects }
+  matchScore Float    @default(0) @map("match_score")
+  status     String   @default("draft") // draft | final
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  JobDescription @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("resumes")
+}
