@@ -9,7 +9,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  
+  url      = env("DATABASE_URL")
 }
 
 // ─── User ───────────────────────────────────────────────────
@@ -28,6 +28,8 @@ model User {
   projects         Project[]
   resumes          Resume[]
   jobDescriptions  JobDescription[]
+  codingProfiles   CodingProfile[]
+  certifications   Certification[]
 
   @@map("users")
 }
@@ -111,6 +113,38 @@ model Project {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("projects")
+}
+
+// ─── Coding Profiles ────────────────────────────────────────
+model CodingProfile {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  platform  String
+  username  String
+  url       String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  @@map("coding_profiles")
+}
+
+// ─── Certifications ─────────────────────────────────────────
+model Certification {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  title        String
+  issuer       String
+  issueDate    DateTime? @map("issue_date")
+  expiryDate   DateTime? @map("expiry_date")
+  credentialId String?   @map("credential_id")
+  url          String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("certifications")
 }
 
 // ─── Job Descriptions ───────────────────────────────────────

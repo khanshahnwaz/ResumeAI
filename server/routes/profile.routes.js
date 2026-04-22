@@ -151,3 +151,68 @@ profileRouter.delete('/projects/:id', async (req, res, next) => {
     res.status(204).end();
   } catch (err) { next(err); }
 });
+
+// ─── Coding Profiles ─────────────────────────────────────────
+
+profileRouter.get('/coding', async (req, res, next) => {
+  try {
+    const list = await prisma.codingProfile.findMany({ where: { userId: req.user.id } });
+    console.log(list);
+    res.json(list);
+  } catch (err) { next(err); }
+});
+
+profileRouter.post('/coding', async (req, res, next) => {
+  try {
+    const { platform, username, url } = req.body;
+    if (!platform || !username || !url) return res.status(422).json({ error: 'platform, username and url required' });
+    const entry = await prisma.codingProfile.upsert({
+      where:  { userId_platform: { userId: req.user.id, platform } },
+      update: { username, url },
+      create: { userId: req.user.id, platform, username, url },
+    });
+    res.status(201).json(entry);
+  } catch (err) { next(err); }
+});
+
+profileRouter.delete('/coding/:id', async (req, res, next) => {
+  try {
+    await prisma.codingProfile.delete({ where: { id: req.params.id, userId: req.user.id } });
+    res.status(204).end();
+  } catch (err) { next(err); }
+});
+
+// ─── Certifications ──────────────────────────────────────────
+
+profileRouter.get('/certifications', async (req, res, next) => {
+  try {
+    const list = await prisma.certification.findMany({
+      where:   { userId: req.user.id },
+      orderBy: { issueDate: 'desc' },
+    });
+    res.json(list);
+  } catch (err) { next(err); }
+});
+
+profileRouter.post('/certifications', async (req, res, next) => {
+  try {
+    const { title, issuer, issueDate, expiryDate, credentialId, url } = req.body;
+    if (!title || !issuer) return res.status(422).json({ error: 'title and issuer required' });
+    const cert = await prisma.certification.create({
+      data: {
+        userId: req.user.id, title, issuer,
+        issueDate:  issueDate  ? new Date(issueDate)  : null,
+        expiryDate: expiryDate ? new Date(expiryDate) : null,
+        credentialId, url,
+      },
+    });
+    res.status(201).json(cert);
+  } catch (err) { next(err); }
+});
+
+profileRouter.delete('/certifications/:id', async (req, res, next) => {
+  try {
+    await prisma.certification.delete({ where: { id: req.params.id, userId: req.user.id } });
+    res.status(204).end();
+  } catch (err) { next(err); }
+});

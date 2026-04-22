@@ -32,6 +32,17 @@ api.interceptors.response.use(
   }
 );
 
+// ─── Resume Upload ───────────────────────────────────────────
+export const uploadAPI = {
+  parseResume: (file) => {
+    const form = new FormData();
+    form.append('resume', file);
+    return api.post('/upload/resume', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+};
+
 // ─── Auth ────────────────────────────────────────────────────
 export const authAPI = {
   register: (body)  => api.post('/auth/register', body),
@@ -61,6 +72,16 @@ export const profileAPI = {
   addProject:    (data) => api.post('/profile/projects', data),
   updateProject: (id, data) => api.put(`/profile/projects/${id}`, data),
   deleteProject: (id) => api.delete(`/profile/projects/${id}`),
+
+  // Coding profiles
+  getCodingProfiles:    ()       => api.get('/profile/coding'),
+  addCodingProfile:     (data)   => api.post('/profile/coding', data),
+  deleteCodingProfile:  (id)     => api.delete(`/profile/coding/${id}`),
+
+  // Certifications
+  getCertifications:    ()       => api.get('/profile/certifications'),
+  addCertification:     (data)   => api.post('/profile/certifications', data),
+  deleteCertification:  (id)     => api.delete(`/profile/certifications/${id}`),
 };
 
 // ─── Job Descriptions ────────────────────────────────────────

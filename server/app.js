@@ -11,6 +11,7 @@ import { userRouter } from './routes/user.routes.js';
 import { profileRouter } from './routes/profile.routes.js';
 import { jobRouter } from './routes/job.routes.js';
 import { resumeRouter } from './routes/resume.routes.js';
+import { uploadRouter } from './routes/upload.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { logger } from './utils/logger.js';
 
@@ -27,7 +28,7 @@ app.use(cors({
 // ─── Rate limiting ────────────────────────────────────────────
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  max: 150,
   message: { error: 'Too many requests, please try again later.' },
 });
 app.use('/api', limiter);
@@ -48,6 +49,7 @@ app.use('/api/user', userRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/job', jobRouter);
 app.use('/api/resume', resumeRouter);
+app.use('/api/upload', uploadRouter);
 
 // ─── Health check ─────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
